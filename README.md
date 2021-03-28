@@ -7,8 +7,9 @@ This project monitors a power electricity meter using the TCRT5000 infrared sens
 
 The TCRT5000 continuously checks the Ferraris disk for distance. If instead of the silver outline the red mark comes into the detection field, the distance becomes noticeably higher, because the reflection is lower. This change is registered by the program code to send a MQTT message.
 
-# Wiring
+# Setup
 I use an ESP32DevKitv4, but any other ESP module should work just as well. A ready-made TRCT5000 module (https://www.az-delivery.de/products/linienfolger-modul-mit-tcrt5000-und-analog-ausgang) is used as sensor. This has an analog and digital output and two LEDs. Because of the narrow measuring ranges I could not fine tune the digital output and evaluate the analog output in the program code. But the digital output can be used quite easily (see Loop()). 
+Wiring itself is very easy, just follow the several guides like this https://www.instructables.com/How-to-Use-TCRT5000-IR-Sensor-Module-With-Arduino-/.
 
 To align the sensor, I recommend using a holder from the 3D printer (https://www.thingiverse.com/thing:2969084) and a mobile phone camera to make the infrared light visible on the disk. I had to experiment a bit with the cover cap on the module (pull it back-/forward). 
 

@@ -11,21 +11,21 @@
 #define LED_PIN 32
 #define sensorTreshold 30 // must be set individually, based on measures of analogue sensor
 #define roundPerkWh 75  // get from your counter --> 75 rounds / kWh for me --> one round 0,0133333 kWh
-#define roundInOneMinuteInWatt 800 // 75 rounds have 1kWh --> 1000 Watt hours --> 60000 Watt minutes --> 1 round per minute has 800 Watt
-#define delayForNextRoundDay 20
-#define delayForNextRoundNight 30
+#define roundInOneMinuteInWatt 800 // 75 rounds have 1kWh --> 1000 Watt hours --> 60000 Watt minutes --> 1 round per minute has 800 Watt (german explaination --> http://www.simla-ev.de/files/content/Mowast_Update_18128/Leistung_ermitteln_18121.pdf )
+#define delayForNextRoundDay 20 // Around 10 seconds for a delay(500)
+#define delayForNextRoundNight 30 // Around 15 seconds for a delay(500)
 
 // Wifi
-const char ssid[] = WIFI_SSID; // Define in Credentials.h
-const char pass[] = WIFI_PASSWD; // Define in Credentials.h
+const char ssid[] = WIFI_SSID; // Define in include/Credentials.h
+const char pass[] = WIFI_PASSWD; // Define in include/Credentials.h
 
 
 // Variables
 int value_D0, value_A0, last_value_D0; // Sensor values
-int value_t1, value_t2, value_t3, value_t4; // History values
-int delayAfterLastRound, totalRounds, dayRounds, currDay; // Rounds
-float tresholdCheck, currPower, totalConsumption, dayConsumption; 
-long unsigned int startTimestamp, lastTimestamp, currTimestamp;
+int value_t1, value_t2, value_t3, value_t4; // History sensor values
+int delayAfterLastRound, totalRounds, dayRounds, currDay; // working variables
+float tresholdCheck, currPower, totalConsumption, dayConsumption; // working variables
+long unsigned int startTimestamp, lastTimestamp, currTimestamp; // working variables
 
 
 // NTP
@@ -37,11 +37,11 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 
 // MQTT
-const char* mqttServer = MQTT_SERVER; // Define in Credentials.h
-const int   mqttPort = 1883;
-const char* mqttUser = MQTT_USER; // Define in Credentials.h
-const char* mqttPassword = MQTT_PWD; // Define in Credentials.h
-const char* mqttPub = "espferraris1/status";
+const char* mqttServer = MQTT_SERVER; // Define in include/Credentials.h
+const char* mqttUser = MQTT_USER; // Define in include/Credentials.h
+const char* mqttPassword = MQTT_PWD; // Define in include/Credentials.h
+const int   mqttPort = 1883; 
+const char* mqttPub = "espferraris1/status"; 
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -91,8 +91,7 @@ void sendMQTTPayload(){
   doc["updateTimestamp"] = currTimestamp;
   doc["treshholdValue"] = tresholdCheck;
   doc["updatesTotal"] = totalRounds;
-  doc["updatesToday"] = dayRounds
-;
+  doc["updatesToday"] = dayRounds;
   doc["powerConsumptionTotal"] = totalConsumption;
   doc["powerConsumptionToday"] = dayConsumption;
   doc["currPower"] = currPower;  
@@ -135,6 +134,7 @@ void ntpTimeInitialization(){
 // Setup
 void setup() {
   Serial.begin(115200);
+
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
   pinMode(SENSOR_DIGITAL_PIN, INPUT);
@@ -152,8 +152,7 @@ void setup() {
   value_t3 = 0;
   value_t4 = 0;
   dayConsumption = 0;
-  dayRounds
- = 0;
+  dayRounds = 0;
   totalConsumption = 0;
   totalRounds = 0;
   delayAfterLastRound = 0;  
@@ -167,7 +166,8 @@ void loop() {
   // Get digital input. Not used anymore in the following code
   value_D0 = digitalRead(SENSOR_DIGITAL_PIN); 
      
-  // Get avg. distance by 50 measurements for better precision
+  // Get avg. distance by 50 measurements for better precision.
+  // Original code used from here: https://wiki.hshl.de/wiki/index.php/Abstands-_und_Farberkennungssensor:_TCRT5000
   for (i = 1; i <= 50; i++)
   {
     value_A0 = analogRead(SENSOR_ANALOG_PIN); 
@@ -191,8 +191,7 @@ void loop() {
     timeClient.setTimeOffset(3600); // I need day check in GMT here, but epcoh vai MQTT is UTC
     if (timeClient.getDay() != currDay){
       dayConsumption = 0;
-      dayRounds
-     = 0;
+      dayRounds = 0;
       currDay = timeClient.getDay();
     }
 
@@ -208,10 +207,8 @@ void loop() {
     lastTimestamp = currTimestamp;
     totalRounds += 1; // Total rounds since start
     totalConsumption = totalRounds / (float)roundPerkWh;  // Total consumption since start
-    dayRounds
-   += 1; // Rounds since midnight
-    dayConsumption = dayRounds
-   / (float)roundPerkWh;  // Daily consumption
+    dayRounds   += 1; // Rounds since midnight
+    dayConsumption = dayRounds / (float)roundPerkWh;  // Daily consumption
     
     // Payload & LED
     sendMQTTPayload();  

@@ -11,9 +11,10 @@
 #define LED_PIN 32
 #define sensorTreshold 30 // must be set individually, based on measures of analogue sensor
 #define roundPerkWh 75  // get from your counter --> 75 rounds / kWh for me --> one round 0,0133333 kWh
-#define roundInOneMinuteInWatt 800 // 75 rounds have 1kWh --> 1000 Watt hours --> 60000 Watt minutes --> 1 round per minute has 800 Watt (german explaination --> http://www.simla-ev.de/files/content/Mowast_Update_18128/Leistung_ermitteln_18121.pdf )
+#define roundInOneMinuteInWatt 800 // 75 rounds have 1kWh --> 1000 Watt hours --> 60000 Watt minutes --> 1 round per minute has 800 Watt (german explanation --> http://www.simla-ev.de/files/content/Mowast_Update_18128/Leistung_ermitteln_18121.pdf )
 #define delayForNextRoundDay 20 // Around 10 seconds for a delay(500)
 #define delayForNextRoundNight 30 // Around 15 seconds for a delay(500)
+#define toHighPowerToBeReal 4800 // Sometimes it is too slow, then I get 4800W or higher as currPower (approx. fits to a read occuring directly after the delays above). So I will ignore it. Setting delay higher can make trouble for fast turns instead :()
 
 // Wifi
 const char ssid[] = WIFI_SSID; // Define in include/Credentials.h
@@ -203,16 +204,20 @@ void loop() {
     }
     timeClient.setTimeOffset(0);
     
-    // Consumption calculation
-    lastTimestamp = currTimestamp;
-    totalRounds += 1; // Total rounds since start
-    totalConsumption = totalRounds / (float)roundPerkWh;  // Total consumption since start
-    dayRounds   += 1; // Rounds since midnight
-    dayConsumption = dayRounds / (float)roundPerkWh;  // Daily consumption
-    
-    // Payload & LED
-    sendMQTTPayload();  
-    digitalWrite(LED_PIN, HIGH);   
+    // Check if maybe false detection
+    if (currPower < toHighPowerToBeReal) {
+
+      // Consumption calculation
+      lastTimestamp = currTimestamp;
+      totalRounds += 1; // Total rounds since start
+      totalConsumption = totalRounds / (float)roundPerkWh;  // Total consumption since start
+      dayRounds   += 1; // Rounds since midnight
+      dayConsumption = dayRounds / (float)roundPerkWh;  // Daily consumption
+      
+      // Payload & LED
+      sendMQTTPayload();  
+      digitalWrite(LED_PIN, HIGH);   
+    }
   }   
  
   // Monitor output

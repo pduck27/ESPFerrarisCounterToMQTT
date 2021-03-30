@@ -22,14 +22,16 @@ In the second step adjust the pin assignment and run the code. The values for yo
 
 ![credentials image](/ressource/shot1.png)
 
-At the serial monitor the values for digital output, analog output, distance, threshold check and current power are displayed. You can also have a look at them with the serial plotter. 
-The threshold value for the detection (sensorTreshold) must be set in such a way that it is exceeded only when the marker is detected by the distance. 
+At the serial monitor the values for digital output, analog output, distance, threshold check and current power are displayed. You can also have a good look at them with the serial plotter from Arduino environemnt GUI (seperator = space). 
+The threshold value for the detection (*sensorTreshold*) must be set in such a way that it is exceeded only when the marker is detected by the distance. 
 In the release version one exceeding of the distance is sufficient. From first tests there is still a commented out version, which checks the distance as an average value of the last five readings. 
+
 
 ![credentials image](/ressource/shot3.png)
 
 This can make sense if the values are very close together or the disks have too strong unevenness. But if the disc rotates very fast, it may lead to dropouts.
 
+I also added a *toHighPowerToBeReal* variable later. Because sometimes the disc is too slow and the mark is still in the range of the detector. This occurs in a very high *currPower* (like 4.800W or more for me). I ignore such high values. Setting the *delay* higher could make trouble for faster disc rounds instead (e.g. vacuum cleaner or oven produce them). Maybe try to run it first with a unnatural high value and if needed (diagram would show big peaks from very low to very high values) you can adjust it for you. 
 # Some more
 Further settings that can be done in the code at the commented places are:
 - Conversion of a disc round to your own consumption figures depending on the power meter.
